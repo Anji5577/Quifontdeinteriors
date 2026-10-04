@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+qa-shots
+.claude/
+.env*
+
+# Source PDFs from the client: their photographs are extracted to assets/source/
+*.pdf
+
+# Local working notes
+claude_read_this.txt

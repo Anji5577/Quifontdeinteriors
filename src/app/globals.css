@@ -1,0 +1,972 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design tokens
+   ========================================================================== */
+
+@theme {
+  /* Colour — warm paper, ink, and a dark umber band for material moments. */
+  --color-paper: #f3efe7;
+  --color-paper-deep: #e9e3d8;
+  --color-ink: #1e1b17;
+  --color-ink-soft: #4a443c;
+  --color-muted: #6b6357;
+  --color-line: #d6cdbe;
+  --color-umber: #1c1713;
+  --color-umber-text: #ebe4d8;
+  --color-umber-muted: #a59a88;
+  --color-umber-line: #3a322b;
+  --color-error: #9b3b2a;
+
+  /* Type — families are injected by next/font as CSS variables. */
+  --font-serif: var(--font-display), "Didot", "Bodoni 72", Georgia, serif;
+  --font-sans: var(--font-text), "Futura", ui-sans-serif, system-ui, sans-serif;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.16em;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.6;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.7;
+  --text-lead: clamp(1.375rem, 1.05rem + 1.2vw, 2.125rem);
+  --text-lead--line-height: 1.35;
+  --text-h3: clamp(1.5rem, 1.25rem + 0.9vw, 2.125rem);
+  --text-h3--line-height: 1.15;
+  --text-h2: clamp(2.125rem, 1.45rem + 2.6vw, 3.875rem);
+  --text-h2--line-height: 1.05;
+  --text-h1: clamp(2.75rem, 1.6rem + 4.4vw, 6rem);
+  --text-h1--line-height: 0.98;
+  --text-display: clamp(3rem, 1.5rem + 5.6vw, 7.5rem);
+  --text-display--line-height: 0.94;
+
+  /* Motion — one family of curves, used everywhere.
+     soft:   general UI settle            reveal: long architectural ease-out
+     wipe:   masks and curtains (in-out)  in-out: ambient loops */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-reveal: cubic-bezier(0.16, 1, 0.35, 1);
+  --ease-wipe: cubic-bezier(0.7, 0, 0.22, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Breakpoints (Tailwind defaults kept: sm 40rem, md 48rem, lg 64rem, xl 80rem, 2xl 96rem) */
+}
+
+:root {
+  --gutter: clamp(1.25rem, 0.6rem + 2.8vw, 4rem);
+  --col-gap: clamp(0.75rem, 0.4rem + 1.4vw, 2rem);
+  --container: 96rem;
+  --section: clamp(3.5rem, 2rem + 4.5vw, 7rem);
+  --section-sm: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+  --header-h: 4.5rem;
+
+  --dur-micro: 250ms;
+  --dur-fast: 350ms;
+  --dur-standard: 600ms;
+  --dur-reveal: 850ms;
+  --dur-image: 1200ms;
+  --dur-cinematic: 1500ms;
+  --dur-wipe: 1300ms;
+  --dur-line: 1100ms;
+  --line-stagger: 85ms;
+
+  --reveal-distance: 30px;
+  --stagger: 120ms;
+
+  color-scheme: light;
+}
+
+@media (max-width: 47.99rem) {
+  :root {
+    --reveal-distance: 18px;
+    --header-h: 4rem;
+  }
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  /* A barely-there paper grain over everything, for a tactile, printed feel.
+     Fixed and non-interactive, so it costs nothing while scrolling. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  :focus-visible {
+    outline: 1.5px solid currentColor;
+    outline-offset: 4px;
+    border-radius: 1px;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* ==========================================================================
+   Layout primitives
+   ========================================================================== */
+
+@utility wrap {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@utility grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--col-gap);
+}
+
+@utility section {
+  padding-block: var(--section);
+}
+
+@utility section-sm {
+  padding-block: var(--section-sm);
+}
+
+/* Small tracked uppercase label used for metadata and section markers. */
+@utility label {
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  letter-spacing: var(--text-label--letter-spacing);
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+/* Display serif. Italic is kept for one accent word: <em> inside a heading. */
+@utility serif {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+/* ==========================================================================
+   Motion — reveal system
+   Elements start hidden only once JS has booted (html.js), so content is
+   always visible without JavaScript. RevealObserver sets [data-revealed].
+   ========================================================================== */
+
+/* Single element / group reveal */
+.js [data-reveal="up"],
+.js [data-reveal="group"] > * {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-distance), 0);
+  transition:
+    opacity var(--dur-reveal) var(--ease-soft),
+    transform var(--dur-reveal) var(--ease-soft);
+}
+
+.js [data-reveal="up"][data-revealed],
+.js [data-reveal="group"][data-revealed] > * {
+  opacity: 1;
+  transform: none;
+}
+
+.js [data-reveal="group"] > :nth-child(2) { transition-delay: calc(var(--stagger) * 1); }
+.js [data-reveal="group"] > :nth-child(3) { transition-delay: calc(var(--stagger) * 2); }
+.js [data-reveal="group"] > :nth-child(4) { transition-delay: calc(var(--stagger) * 3); }
+.js [data-reveal="group"] > :nth-child(5) { transition-delay: calc(var(--stagger) * 4); }
+.js [data-reveal="group"] > :nth-child(n + 6) { transition-delay: calc(var(--stagger) * 5); }
+
+/* Architectural image reveal: the photograph (with its placeholder colour)
+   wipes open from below while settling from 1.08 → 1 on a long ease-out.
+   The clip sits on the inner layer: the observed frame must stay unclipped,
+   because IntersectionObserver ignores fully clipped targets. */
+.js [data-reveal="image"] .photo-settle {
+  clip-path: inset(100% 0 0 0);
+  transform: scale(1.08);
+  transition:
+    clip-path var(--dur-wipe) var(--ease-wipe),
+    transform calc(var(--dur-wipe) + 400ms) var(--ease-reveal);
+}
+.js [data-reveal="image"][data-revealed] .photo-settle {
+  clip-path: inset(0 0 0 0);
+  transform: scale(1);
+}
+
+/* Lines that draw from 0 → 100% width once revealed */
+.js [data-reveal] .draw-line,
+.js [data-reveal="line"] {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-cinematic) var(--ease-soft);
+}
+.js [data-revealed] .draw-line,
+.js [data-reveal="line"][data-revealed] {
+  transform: scaleX(1);
+}
+
+/* --------------------------------------------------------------------------
+   Line-masked headings
+   .line-mask clips; .line-inner rises from below. Above the fold, <Lines>
+   renders masks on the server and animates with CSS before hydration.
+   Below the fold, headings marked data-reveal="lines" are split in the
+   browser (src/lib/split-lines.ts) and revealed by RevealObserver.
+   -------------------------------------------------------------------------- */
+
+.line-mask {
+  display: block;
+  overflow: clip;
+  /* room for descenders without changing line rhythm */
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.line-inner {
+  display: block;
+}
+
+@keyframes line-rise {
+  from { transform: translate3d(0, var(--line-from, 105%), 0); }
+  to { transform: none; }
+}
+
+.lines-enter .line-inner {
+  animation: line-rise var(--dur-line) var(--ease-reveal) both;
+  animation-delay: calc(var(--delay, 0ms) + var(--i, 0) * var(--line-stagger));
+}
+
+/* Until split, keep below-the-fold line headings invisible (never for long:
+   the fallback animation guarantees visibility if splitting never runs). */
+@keyframes reveal-fallback {
+  to { opacity: 1; }
+}
+.js [data-reveal="lines"]:not([data-split]) {
+  opacity: 0;
+  animation: reveal-fallback 0s 2.5s forwards;
+}
+.js [data-reveal="lines"][data-split] .line-inner {
+  transform: translate3d(0, 105%, 0);
+  transition: transform var(--dur-line) var(--ease-reveal);
+  transition-delay: calc(var(--i, 0) * var(--line-stagger));
+}
+.js [data-reveal="lines"][data-revealed] .line-inner {
+  transform: none;
+}
+
+/* ==========================================================================
+   Motion — entrance (pure CSS so it runs before hydration)
+   ========================================================================== */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--rise, 25px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes settle-soft {
+  from { transform: scale(1.03); }
+  to { transform: scale(1); }
+}
+
+@keyframes page-settle {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes page-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.enter-rise {
+  animation: rise 800ms var(--ease-soft) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.enter-logo {
+  --rise: 8px;
+  animation: rise 900ms var(--ease-soft) both;
+}
+
+/* Project page hero: 1.03 → 1 */
+.page-hero-photo {
+  animation: settle-soft var(--dur-image) var(--ease-soft) both;
+}
+
+/* Only after a client-side navigation: the first paint is never hidden,
+   so the hero photograph can be the LCP element immediately.
+   Where view transitions exist, the page only fades (a shared photograph
+   morphs on top, and a vertical shift would make it land off-target). */
+[data-navigated] .page-enter {
+  animation: page-settle 700ms var(--ease-soft) both;
+}
+@supports (view-transition-name: none) {
+  [data-navigated] .page-enter {
+    animation: page-fade 600ms var(--ease-soft) both;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   First visit only (html.intro, set by the boot script): the wordmark rises
+   and the hero aperture opens. Never hides the photograph entirely.
+   -------------------------------------------------------------------------- */
+
+@keyframes aperture {
+  from { clip-path: inset(5% 4% 5% 4%); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* Full-screen hero slides: each photograph settles slowly while it shows. */
+@keyframes hero-settle {
+  from { transform: scale(1.07); }
+  to { transform: scale(1); }
+}
+@keyframes hero-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.hero-slide {
+  transform: scale(1.07);
+}
+.hero-slide.is-active {
+  animation: hero-settle 9s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}
+.hero-progress {
+  animation: hero-progress var(--slide, 6500ms) linear both;
+}
+.hero-caption {
+  --rise: 10px;
+  animation: rise 700ms var(--ease-reveal) both;
+}
+.intro .hero-aperture {
+  animation: aperture 1100ms var(--ease-wipe) 150ms both;
+}
+.intro .enter-logo {
+  --rise: 14px;
+  animation-duration: 1100ms;
+}
+
+/* --------------------------------------------------------------------------
+   Scroll-driven motion (Chrome / Safari 26+). Firefox simply doesn't move:
+   the hero falls back to src/components/motion/Parallax.tsx.
+   -------------------------------------------------------------------------- */
+
+@keyframes hero-drift {
+  from { translate: 0 0; }
+  to { translate: 0 40px; }
+}
+@keyframes inner-drift {
+  from { translate: 0 -4%; }
+  to { translate: 0 4%; }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-drift {
+      animation: hero-drift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100vh;
+    }
+    @media (max-width: 47.99rem) {
+      .scroll-drift {
+        animation-name: none;
+      }
+    }
+
+    /* Inner parallax: the photograph is taller than its frame and drifts
+       inside it as the frame crosses the viewport. */
+    [data-parallax] .photo-settle {
+      top: -5%;
+      bottom: -5%;
+    }
+    [data-parallax] .photo-zoom {
+      animation: inner-drift linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+  }
+}
+
+/* Footer: the studio name across the full width (SVG keeps it exact at any size). */
+.footer-name {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 84px;
+}
+
+/* Inline photographs in a line of type: they open from nothing when revealed. */
+.inline-photo {
+  display: inline-block;
+  position: relative;
+  width: 2.1em;
+  height: 0.82em;
+  margin-inline: 0.06em;
+  vertical-align: -0.04em;
+  border-radius: 999px;
+  overflow: hidden;
+  transition: width 1100ms var(--ease-reveal);
+}
+.inline-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: scale 1400ms var(--ease-reveal);
+}
+.js [data-reveal="inline"] .inline-photo {
+  width: 0;
+}
+.js [data-reveal="inline"] .inline-photo img {
+  scale: 1.4;
+}
+.js [data-reveal="inline"][data-revealed] .inline-photo {
+  width: 2.1em;
+}
+.js [data-reveal="inline"][data-revealed] .inline-photo img {
+  scale: 1;
+}
+
+/* Scroll-lit words: each word inks in at its own point in the scroll. The
+   unlit state stays at 55% so the line always meets 3:1 contrast as large text. */
+@keyframes word-on {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-words {
+      view-timeline: --words block;
+    }
+    .scroll-words > span {
+      animation: word-on linear both;
+      animation-timeline: --words;
+      animation-range: cover var(--from) cover var(--to);
+    }
+  }
+}
+
+/* Stacking process cards: a soft edge shadow shows each card lifting over the last. */
+.process-card > div {
+  box-shadow: 0 -10px 24px -20px rgb(30 27 23 / 0.16);
+}
+
+/* Expanding frame: the photograph opens from an inset frame to full bleed
+   while its (taller) section scrolls past; the line arrives at the end. */
+@keyframes expand-open {
+  from { clip-path: inset(14% 18% 14% 18%); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes expand-img {
+  from { transform: scale(1.18); }
+  to { transform: scale(1); }
+}
+@keyframes expand-line {
+  from { opacity: 0; translate: 0 30px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .expand-wrap {
+      height: 230svh;
+      view-timeline: --expand block;
+    }
+    .expand-frame {
+      animation: expand-open linear both;
+      animation-timeline: --expand;
+      animation-range: contain 0% contain 55%;
+    }
+    .expand-img {
+      animation: expand-img linear both;
+      animation-timeline: --expand;
+      animation-range: contain 0% contain 70%;
+    }
+    .expand-line {
+      animation: expand-line linear both;
+      animation-timeline: --expand;
+      animation-range: contain 50% contain 75%;
+    }
+  }
+}
+
+/* ==========================================================================
+   Page transitions (React <ViewTransition>, see Photo vtName)
+   ========================================================================== */
+
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(.morph) {
+  animation-duration: 850ms;
+  animation-timing-function: var(--ease-reveal);
+}
+::view-transition-old(.morph),
+::view-transition-new(.morph) {
+  height: 100%;
+  object-fit: cover;
+  overflow: clip;
+}
+::view-transition-image-pair(.morph) {
+  overflow: clip;
+}
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* ==========================================================================
+   Interaction
+   ========================================================================== */
+
+/* Thin underline that draws from left to right on hover / focus */
+.link-line {
+  position: relative;
+  display: inline-block;
+}
+.link-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.2em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform var(--dur-fast) var(--ease-soft);
+}
+.link-line:hover::after,
+.link-line:focus-visible::after,
+.link-line[aria-current="page"]::after,
+.group:hover .link-line::after,
+.group:focus-visible .link-line::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.arrow {
+  display: inline-block;
+  transition: translate var(--dur-fast) var(--ease-soft);
+}
+
+/* Label roll: the text slides up inside a mask and its copy follows.
+   Markup: <span class="roll" data-text="Label"><span>Label</span></span> */
+.roll {
+  position: relative;
+  display: inline-block;
+  overflow: clip;
+  vertical-align: top;
+}
+.roll > span,
+.roll::after {
+  display: block;
+  transition: translate 500ms var(--ease-reveal);
+}
+.roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto 0;
+}
+@media (hover: hover) {
+  .group:hover .roll > span,
+  .group:hover .roll::after,
+  .roll:hover > span,
+  .roll:hover::after {
+    translate: 0 -100%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Menu: a full-screen modal <dialog>. It wipes down from the top and its
+   links rise in sequence (@starting-style), then wipes back up on close.
+   -------------------------------------------------------------------------- */
+
+dialog.menu {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  overflow-y: auto;
+  clip-path: inset(0 0 100% 0);
+  transition:
+    clip-path 900ms var(--ease-wipe),
+    display 900ms allow-discrete,
+    overlay 900ms allow-discrete;
+}
+dialog.menu[open] {
+  display: flex;
+  flex-direction: column;
+  clip-path: inset(0 0 0 0);
+}
+@starting-style {
+  dialog.menu[open] {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+dialog.menu::backdrop {
+  background: transparent;
+}
+
+dialog.menu .menu-link,
+dialog.menu .menu-meta {
+  translate: 0 105%;
+  transition: translate 900ms var(--ease-reveal);
+}
+dialog.menu[open] .menu-link {
+  translate: 0 0;
+  transition-delay: calc(280ms + var(--i, 0) * 55ms);
+}
+dialog.menu[open] .menu-meta {
+  translate: 0 0;
+  transition-delay: 600ms;
+}
+@starting-style {
+  dialog.menu[open] .menu-link,
+  dialog.menu[open] .menu-meta {
+    translate: 0 105%;
+  }
+}
+dialog.menu .menu-link[aria-current="page"] {
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------------------
+   Lightbox: full-screen <dialog>, slides in a horizontal scroll-snap strip.
+   -------------------------------------------------------------------------- */
+
+dialog.lightbox {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-umber);
+  color: var(--color-umber-text);
+  opacity: 0;
+  transition:
+    opacity 450ms var(--ease-soft),
+    display 450ms allow-discrete,
+    overlay 450ms allow-discrete;
+}
+dialog.lightbox[open] {
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+}
+@starting-style {
+  dialog.lightbox[open] {
+    opacity: 0;
+  }
+}
+dialog.lightbox::backdrop {
+  background: transparent;
+}
+.lightbox-track {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.lightbox-track::-webkit-scrollbar {
+  display: none;
+}
+.lightbox-slide {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding-inline: var(--gutter);
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+.lightbox-slide picture {
+  display: contents;
+}
+
+/* Journal article typography */
+.prose-journal > p {
+  margin-top: 1.4em;
+  font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  line-height: 1.75;
+  color: var(--color-ink-soft);
+}
+.prose-journal > p:first-child {
+  margin-top: 0;
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+  color: var(--color-ink);
+}
+.prose-journal > h2 {
+  margin-top: 2.6em;
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: var(--text-h3);
+  line-height: var(--text-h3--line-height);
+  color: var(--color-ink);
+}
+.prose-journal > ul {
+  margin-top: 1.2em;
+  border-top: 1px solid var(--color-line);
+}
+.prose-journal > ul > li {
+  border-bottom: 1px solid var(--color-line);
+  padding-block: 0.7em;
+  color: var(--color-ink-soft);
+}
+
+/* Ask panel: slides in from the right. */
+dialog.concierge {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(30rem, 100vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--color-line);
+  background: var(--color-paper);
+  translate: 100% 0;
+  transition:
+    translate 700ms var(--ease-reveal),
+    display 700ms allow-discrete,
+    overlay 700ms allow-discrete;
+}
+dialog.concierge[open] {
+  translate: 0 0;
+}
+@starting-style {
+  dialog.concierge[open] {
+    translate: 100% 0;
+  }
+}
+dialog.concierge::backdrop {
+  background: rgb(30 27 23 / 0.25);
+}
+
+/* Signature details rail: grab to drag with a mouse; snapping pauses mid-drag. */
+.details-track {
+  cursor: grab;
+}
+.details-track[data-dragging] {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
+}
+.details-track img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+.details-track::-webkit-scrollbar {
+  display: none;
+}
+.details-track:focus-visible {
+  outline: 1.5px solid currentColor;
+  outline-offset: -4px;
+}
+
+/* Explore by space: caption and thumbnails settle in when the space changes. */
+.space-swap {
+  --rise: 12px;
+  animation: rise 700ms var(--ease-reveal) both;
+}
+
+/* Enquiry steps settle in as they change. */
+.enquiry-step {
+  animation: rise 600ms var(--ease-reveal) both;
+  --rise: 14px;
+}
+
+/* Floating "View" label that follows the pointer (CursorLabel). */
+.cursor-label {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.6;
+  transition:
+    opacity 300ms var(--ease-soft),
+    scale 400ms var(--ease-reveal);
+}
+.cursor-label[data-active] {
+  opacity: 1;
+  scale: 1;
+}
+
+/* Lenis (smooth scroll) — required styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Reduced motion: no parallax, zoom, wipes, morphs or staggered travel.
+   Content simply fades, or appears.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --reveal-distance: 0px;
+    --stagger: 0ms;
+    --line-stagger: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+  }
+
+  .page-hero-photo,
+  .hero-slide,
+  .intro .hero-aperture {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .js [data-reveal="image"] .photo-settle {
+    clip-path: none;
+    transform: none;
+    opacity: 0;
+    transition: opacity 400ms linear;
+  }
+  .js [data-reveal="image"][data-revealed] .photo-settle {
+    opacity: 1;
+  }
+  .js [data-reveal="up"],
+  .js [data-reveal="group"] > * {
+    transition: opacity 400ms linear;
+  }
+  .js [data-reveal="lines"][data-split] .line-inner,
+  .lines-enter .line-inner {
+    transform: none;
+    animation: none;
+  }
+
+  .photo-zoom,
+  .arrow,
+  .shift,
+  .roll > span,
+  .roll::after {
+    scale: none !important;
+    translate: none !important;
+  }
+
+  .cursor-label {
+    display: none;
+  }
+
+  .js [data-reveal="inline"] .inline-photo {
+    width: 2.1em;
+    transition: none;
+  }
+  .js [data-reveal="inline"] .inline-photo img {
+    scale: 1;
+  }
+
+  dialog.concierge,
+  dialog.menu,
+  dialog.menu .menu-link,
+  dialog.menu .menu-meta {
+    clip-path: none;
+    translate: none;
+    transition: opacity 200ms linear;
+  }
+}
